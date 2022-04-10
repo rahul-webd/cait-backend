@@ -60,3 +60,21 @@ export interface shopItem {
 export interface shopItems {
     [memo: string]: shopItem
 }
+
+export interface schemas {
+    [name: string]: Array<shopItem>
+}
+
+interface collectionObj {
+    schemas: schemas,
+    items: Array<shopItem>
+}
+
+export interface collections {
+    [collectionName: string]: collectionObj
+}
+
+export interface shopData {
+    collections: collections,
+    items: shopItems
+}

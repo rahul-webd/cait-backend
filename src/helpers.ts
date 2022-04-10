@@ -1,7 +1,7 @@
 import { Api, JsonRpc, RpcError } from 'eosjs';
 import { rpcEndpoints, contracts } from './data';
 import fetch from 'node-fetch';
-import { limitItem, limitItems, limitItemsObj, menuItem, menuItems, menuItemsObj, shopItem, shopItems } from './interfaces';
+import { limitItem, limitItems, limitItemsObj, menuItem, menuItems, menuItemsObj, shopItem, shopItems } from './schemas';
 
 const shopContract = contracts.shopContract;
 const shopContractName = shopContract.name;
@@ -68,7 +68,6 @@ const getShopLimitRows = async () => {
     let limitItems: Array<limitItem> = []
 
     while (more) {
-        console.log(more);
         const limitRows: limitItems | boolean = await getTableRows(limitsTable, lowerBound);
         
         if (limitRows) {
@@ -81,11 +80,10 @@ const getShopLimitRows = async () => {
         }
     }
     
-    console.log(limitItems.length);
     return limitItems;
 }
 
-const setShopItems = async () => {
+export const getShopItemsFromContract = async () => {
     const shopItems: shopItems = {}
 
     const menuItems = await getShopMenuRows();
@@ -126,7 +124,3 @@ const setShopItems = async () => {
 
     return shopItems;
 }
-
-// filter shopItems in collections and schema-names -- save it in database
-
-setShopItems();
