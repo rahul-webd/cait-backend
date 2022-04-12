@@ -1,0 +1,31 @@
+steps:
+
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['pubsub', 'topics', 'create', 'shopItemUpdate']
+
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['scheduler', 'jobs', 'create', 'pubsub', 'shopItemScheduler',
+        '--location=us-central1',
+        '--schedule=*/30 * * * *', '--topic=shopItemUpdate',
+        '--message-body="shop item scheduler system"']
+
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['projects', 'add-iam-policy-binding', '${PROJECT_ID}',
+        '--member=serviceAccount:service-${PROJECT_NUMBER}@gcp-sa-pubsub.iam.gserviceaccount.com',
+        '--role=roles/iam.serviceAccountTokenCreator']
+
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['iam', 'service-accounts', 'create', 'shop-item-update-invoker',
+        '--display-name', '"Shop Item Pub/Sub Invoker"']
+
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['beta', 'run', 'services', 'add-iam-policy-binding', 'shop-item-service',
+        '--region=us-central1',
+        '--member=serviceAccount:shop-item-update-invoker@${PROJECT_ID}.iam.gserviceaccount.com',
+        '--role=roles/run.invoker']
+
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['beta', 'pubsub', 'subscriptions', 'create', 'shop-item-update-subscription',
+        '--topic', 'shopItemUpdate', 
+        '--push-endpoint=https://shop-item-service-hsm53esyma-uc.a.run.app/setShopItems',
+        '--push-auth-service-account=shop-item-update-invoker@${PROJECT_ID}.iam.gserviceaccount.com']

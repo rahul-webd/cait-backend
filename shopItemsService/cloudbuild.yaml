@@ -1,0 +1,10 @@
+steps:
+
+- name: "gcr.io/cloud-builders/gcloud"
+  args: ['builds', 'submit', '--tag', 'gcr.io/${PROJECT_ID}/shop-item-service', '.']
+
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['beta', 'run', 'deploy', 'shop-item-service',
+  '--image', 'gcr.io/${PROJECT_ID}/shop-item-service', 
+  '--region', 'us-central1',
+  '--platform', 'managed']

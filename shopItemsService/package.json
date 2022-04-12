@@ -1,14 +1,13 @@
 {
-  "name": "cait-backend",
+  "name": "shop-item-service",
   "version": "1.0.0",
-  "description": "backend for cait web app",
+  "description": "shop item service",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "deploy": "npm run build && (npm run deploy:app)",
-    "deploy:app": "%INIT_CWD%/bin/deploy.sh",
+    "deploy": "gcloud builds submit --config cloudbuild.yaml",
     "start": "node ./dist/index.js",
-    "test": "npm run build && npm run start"
+    "serve": "npm run build && npm run start"
   },
   "author": "rahul gautam",
   "license": "ISC",

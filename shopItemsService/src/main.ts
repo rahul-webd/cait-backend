@@ -3,7 +3,7 @@ import { collections, schemas, shopData, shopItem } from "./schemas";
 import * as admin from 'firebase-admin';
 import "dotenv/config";
 
-import * as serviceAccount from './caitServiceAccountKey.json';
+import * as serviceAccount from '../key.json';
 
 const sa: any = serviceAccount;
 

@@ -6,10 +6,6 @@ const app = express();
 
 const port = process.env.PORT || 8080;
 
-app.get('/', (req, res) => {
-    res.send('working');
-});
-
 app.get('/setShopItems', async (req, res) => {
     await setShopitems();
     res.end();
