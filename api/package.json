@@ -1,13 +1,13 @@
 {
-  "name": "shop-item-service",
+  "name": "cait-api",
   "version": "1.0.0",
-  "description": "shop item service",
-  "main": "dist/index.js",
+  "description": "REST API for CAIT",
+  "main": "./dist/index.js",
   "scripts": {
     "build": "tsc",
-    "deploy": "gcloud builds submit --config cloudbuild.yaml",
     "start": "node ./dist/src/index.js",
-    "serve": "npm run build && npm run start"
+    "serve": "npm run build && npm run start",
+    "deploy": "gcloud builds submit --config cloudbuild.yaml"
   },
   "author": "rahul gautam",
   "license": "ISC",
@@ -18,6 +18,8 @@
     "typescript": "^4.6.3"
   },
   "dependencies": {
+    "@types/cors": "^2.8.12",
+    "cors": "^2.8.5",
     "dotenv": "^16.0.0",
     "eosjs": "^22.1.0",
     "express": "^4.17.3",

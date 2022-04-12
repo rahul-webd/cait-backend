@@ -93,7 +93,7 @@ export const getShopItemsFromContract = async () => {
     menuItems.reduce((prev: menuItemsObj, cur: menuItem) => {
         return {
             ...prev,
-            [cur.Memo]: cur
+            [validatePropertyName(cur.Memo)]: cur
         }
     }, {});
 
@@ -101,7 +101,7 @@ export const getShopItemsFromContract = async () => {
     limitItems.reduce((prev: limitItemsObj, cur: limitItem) => {
         return {
             ...prev,
-            [cur.Memo]: cur
+            [validatePropertyName(cur.Memo)]: cur
         }
     }, {});
 
@@ -119,8 +119,16 @@ export const getShopItemsFromContract = async () => {
             shopItem.limits = limitItem;
         }
 
-        shopItems[memo] = shopItem;
+        shopItems[validatePropertyName(memo)] = shopItem;
     }
 
     return shopItems;
+}
+
+export const validatePropertyName = (propertyName: string): string => {
+    let vpn: string = propertyName;
+    if (propertyName.includes('.')) {
+        vpn = propertyName.replace(/\./g, '_')
+    }
+    return vpn;
 }

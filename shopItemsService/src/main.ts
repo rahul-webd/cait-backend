@@ -1,4 +1,4 @@
-import { getShopItemsFromContract } from "./helpers";
+import { getShopItemsFromContract, validatePropertyName } from "./helpers";
 import { collections, schemas, shopData, shopItem } from "./schemas";
 import * as admin from 'firebase-admin';
 import "dotenv/config";
@@ -8,12 +8,16 @@ import * as serviceAccount from '../key.json';
 const sa: any = serviceAccount;
 
 admin.initializeApp({
-    credential: admin.credential.cert(sa)
+    credential: admin.credential.cert(sa),
+    databaseURL: 'https://cait-49fc0-default-rtdb.firebaseio.com'
 })
 
 const filterShopItems = async () => {
     const shopItems = await getShopItemsFromContract();
-    const collections: collections = {}
+    const collections: collections = {
+        colNames: [],
+        colItems: {}
+    }
     
     const ShopItemValues = Object.values(shopItems);
     const collectionNames: Array<string> = 
@@ -33,8 +37,13 @@ const filterShopItems = async () => {
 
     for (const cn of collectionNames) {
 
-        collections[cn] = {
-            schemas: {},
+        const vcn = validatePropertyName(cn);
+
+        collections.colItems[vcn] = {
+            schemas: {
+                schNames: [],
+                schItems: {}
+            },
             items: []
         }
 
@@ -64,10 +73,14 @@ const filterShopItems = async () => {
             return prev;
         }, []);
 
-        const schemas: schemas = {}
+        const schemas: schemas = {
+            schNames: [],
+            schItems: {}
+        }
 
         for (const sn of schemaNames) {
 
+            const vsn: string = validatePropertyName(sn);
             const schemaItems: Array<shopItem> = 
             collectionItems.filter(shopItem => {
 
@@ -80,11 +93,13 @@ const filterShopItems = async () => {
                 return false;
             });
 
-            schemas[sn] = schemaItems;
+            schemas.schNames.push(vsn);
+            schemas.schItems[vsn] = schemaItems;
         }
 
-        collections[cn].schemas = schemas;
-        collections[cn].items = collectionItems;
+        collections.colNames.push(vcn);
+        collections.colItems[vcn].schemas = schemas;
+        collections.colItems[vcn].items = collectionItems;
     }
 
     return { 
@@ -96,25 +111,14 @@ const filterShopItems = async () => {
 export const setShopitems = async () => {
 
     const shopData: shopData = await filterShopItems();
-    console.log(Object.keys(shopData.collections).length);
+    const ref = admin.database().ref('shopData');
 
-    const store = admin.firestore();
-    const collectionName = 'shopData';
-
-    await store.collection(collectionName).doc('collections')
-        .set(shopData.collections, { merge: true })
-        .then(val => {
-            console.log(val);
-        }, error => {
+    await ref.update(shopData, error => {
+        if (error) {
             console.log(error);
-        });
-
-    await store.collection(collectionName).doc('items')
-        .set(shopData.items, { merge: true })
-        .then(val => {
-            console.log(val);
-        }, error => {
-            console.log(error);
-        });
+        } else {
+            console.log('data successfully updated');
+        }
+    })
 }
 // Add timestamp for new items - will help in doing a check for latest items

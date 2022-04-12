@@ -61,27 +61,17 @@ export interface shopItems {
     [memo: string]: shopItem
 }
 
-interface schItems {
+export interface schemas {
     [name: string]: Array<shopItem>
 }
 
-export interface schemas {
-    schNames: Array<string>,
-    schItems: schItems
-}
-
-interface colItem {
+interface collectionObj {
     schemas: schemas,
     items: Array<shopItem>
 }
 
-interface colItems {
-    [collectionName: string]: colItem
-}
-
 export interface collections {
-    colNames: Array<string>,
-    colItems: colItems
+    [collectionName: string]: collectionObj
 }
 
 export interface shopData {
