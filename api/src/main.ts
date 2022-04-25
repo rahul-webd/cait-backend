@@ -1,3 +1,4 @@
+import { Reference } from '@firebase/database-types';
 import * as admin from 'firebase-admin';
 import * as serviceKey from '../key.json';
 import { disValidatePropName } from './helpers';
@@ -20,7 +21,7 @@ export const getItems = async (lowerBound: string, limit: number) => {
         query = ref.limitToFirst(limit);
     }
 
-    const res = await query.get().then(snapshot => {
+    const res = await query.once('value', snapshot => {
         if (snapshot.exists()) {
             return snapshot.val();
         } else {
@@ -36,7 +37,7 @@ export const getItems = async (lowerBound: string, limit: number) => {
 export const getItem = async (name: string) => {
     const ref = db.ref(`shopData/items/${name}`);
 
-    const res = await ref.get().then(snapshot => {
+    const res = await ref.once('value', snapshot => {
         if (snapshot.exists()) {
             return snapshot.val();
         } else {
@@ -54,7 +55,7 @@ export const getItem = async (name: string) => {
 export const getColNames = async () => {
     const ref = db.ref(`shopData/collections/colNames`);
 
-    const res = await ref.get().then(snapshot => {
+    const res = await ref.once('value', snapshot => {
         if (snapshot.exists()) {
             return snapshot.val();
         } else {
@@ -72,7 +73,7 @@ export const getSchNames = async (colName: string) => {
     const ref = 
     db.ref(`shopData/collections/colItems/${colName}/schemas/schNames`);
 
-    const res = await ref.get().then(snapshot => {
+    const res = await ref.once('value', snapshot => {
         if (snapshot.exists()) {
             return snapshot.val();
         } else {
@@ -98,7 +99,7 @@ export const getColItems = async (colName: string, lowerBound: string | boolean,
         query = ref.limitToFirst(limit);
     }
 
-    const res = await query.get().then(snapshot => {
+    const res = await query.once('value', snapshot => {
         if (snapshot.exists()) {
             return snapshot.val();
         } else {
@@ -125,7 +126,7 @@ export const getSchItems = async (colName: string, schName: string,
         query = ref.limitToFirst(limit);
     }
 
-    const res = await query.get().then(snapshot => {
+    const res = await query.once('value', snapshot => {
         if (snapshot.exists()) {
             return snapshot.val();
         } else {
@@ -136,5 +137,34 @@ export const getSchItems = async (colName: string, schName: string,
     });
 
     console.log(res);
+    return res;
+}
+
+export const getTemplates = async (memo: string | undefined, 
+    ids: string[] | undefined) => {
+    let ref;
+    let queries: Reference[] = [];
+    let res: any[] = []
+    if (memo) {
+        ref = db.ref(`templateData/${memo}`);
+        queries.push(ref);
+    } else if (ids) {
+        queries = ids.map(id => db.ref(`templateData/${id}`));
+    }
+
+    if (memo || ids) {
+        await Promise.all(
+            queries.map(query => query.once('value', snapshot => {
+                if (snapshot.exists()) {
+                    res.push(snapshot.val());
+                } else {
+                    res.push({ error: 'no data found' })
+                }
+            }, error => {
+                res.push({ error: error.name })
+            }))
+        );
+    }
+
     return res;
 }

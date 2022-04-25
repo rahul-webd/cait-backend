@@ -1,7 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import { getItems, getItem, getColNames, getSchNames, getColItems,
-    getSchItems } from './main';
+    getSchItems, 
+    getTemplates} from './main';
 
 const port = process.env.PORT || 8080;
 const app = express();
@@ -63,6 +64,15 @@ app.post('/get_schema_drops', async (req, resp) => {
     const res = await getSchItems(colName, schName, lowerBound, limit);
     resp.send(res);
 });
+
+app.post('/get_templates', async (req, resp) => {
+    const body = req.body;
+    const memo: string = body.memo;
+    const ids: string[] = body.ids;
+
+    const res = await getTemplates(memo, ids);
+    resp.send(res);
+})
 
 app.listen(port, () => {
     console.log(`api listening at port ${port}`);

@@ -6,7 +6,7 @@ const app = express();
 
 const port = process.env.PORT || 8080;
 
-app.get('/setShopItems', async (req, res) => {
+app.post('/setShopItems', async (req, res) => {
     await setShopitems();
     res.end();
 });

@@ -1,5 +1,5 @@
-import { getShopItemsFromContract, validatePropertyName } from "./helpers";
-import { collections, schemas, shopData, shopItem } from "./schemas";
+import { createTemplateObj, getShopItemsFromContract, validatePropertyName } from "./helpers";
+import { collections, schemas, shopData, shopItem, templateItem, templateItems } from "./schemas";
 import * as admin from 'firebase-admin';
 import "dotenv/config";
 
@@ -119,6 +119,22 @@ export const setShopitems = async () => {
         } else {
             console.log('data successfully updated');
         }
-    })
+    });
 }
+
+export const setTemplateObj = async () => {
+    const templateData: templateItems = await createTemplateObj();
+    const ref = admin.database().ref('templateData');
+
+    await ref.update(templateData, error => {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log('templates successfully updated');
+        }
+    });
+}
+
+// setTemplateObj();
+
 // Add timestamp for new items - will help in doing a check for latest items

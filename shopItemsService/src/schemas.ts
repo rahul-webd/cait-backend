@@ -12,7 +12,7 @@ export interface menuItem {
     TemplateId: number,
     Price: menuItemPrice,
     ProfitTo: string,
-    AffiliateFraction: string
+    AffiliateFraction: string,
 }
 
 export interface menuItems {
@@ -54,7 +54,7 @@ export interface limitItemsObj {
 
 export interface shopItem {
     item: menuItem | emptyObject,
-    limits: limitItem | emptyObject
+    limits: limitItem | emptyObject,
 }
 
 export interface shopItems {
@@ -87,4 +87,14 @@ export interface collections {
 export interface shopData {
     collections: collections,
     items: shopItems
+}
+
+export interface templateItem {
+    Memo: string,
+    TemplateId: string,
+    TemplateData: any
+}
+
+export interface templateItems {
+    [memo: string]: templateItem
 }

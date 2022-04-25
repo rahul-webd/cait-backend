@@ -1,7 +1,8 @@
-import { Api, JsonRpc, RpcError } from 'eosjs';
-import { rpcEndpoints, contracts } from './data';
+import { JsonRpc } from 'eosjs';
+import { rpcEndpoints, contracts, atomicEndpoints } from './data';
 import fetch from 'node-fetch';
-import { limitItem, limitItems, limitItemsObj, menuItem, menuItems, menuItemsObj, shopItem, shopItems } from './schemas';
+import { limitItem, limitItems, limitItemsObj, menuItem, menuItems, 
+    menuItemsObj, shopItem, shopItems, templateItem, templateItems } from './schemas';
 
 const shopContract = contracts.shopContract;
 const shopContractName = shopContract.name;
@@ -125,10 +126,97 @@ export const getShopItemsFromContract = async () => {
     return shopItems;
 }
 
-export const validatePropertyName = (propertyName: string): string => {
-    let vpn: string = propertyName;
-    if (propertyName.includes('.')) {
-        vpn = propertyName.replace(/\./g, '_')
+export const createTemplateObj = async () => {
+    const shopItems = await getShopItemsFromContract();
+    const templateItems: templateItems = {};
+
+    for (const memo in shopItems) {
+        const si: any = shopItems[memo].item
+        templateItems[memo] = {
+            Memo: si.Memo,
+            TemplateId: si.TemplateId,
+            TemplateData: {}
+        }
     }
-    return vpn;
+
+    const ti = addTemplateData(templateItems);
+    return ti;
+}
+
+const addTemplateData = async (templateItems: templateItems) => {
+    const templateItemValues = Object.values(templateItems);
+
+    const ids: Array<number> = templateItemValues.map((si: any) => {
+        if (si && Object.keys(si).length !== 0) {
+            return si.TemplateId;
+        }
+    });
+
+    const completeBatch: Array<number> = [ ...ids ];
+
+    const limit = 100;
+
+    while (completeBatch.length !== 0) {
+        const batch: Array<number> = completeBatch.slice(0, limit);
+
+        const templates: Array<any> = await getTemplateData(batch, limit);
+
+        if (templates) {
+            for (const t of templates) {
+                const id = Number(t.template_id);
+                const idIndex = ids.indexOf(id);
+                const idMemo: string = 
+                validatePropertyName(templateItemValues[idIndex].Memo);
+                console.log(idMemo);
+                const templateItem: templateItem = templateItems[idMemo];
+                let immData: any = t.immutable_data;
+                const validImmData: any = {}
+
+                // validating user added immutable data keys
+
+                for (const key in immData) {
+                    const validKey = validatePropertyName(key);
+                    validImmData[validKey] = immData[key];
+                }
+
+                t.immutable_data = validImmData;
+
+                templateItem.TemplateData = t;
+            }
+            completeBatch.splice(0, limit);
+        }
+    }
+    return templateItems;
+}
+
+const getTemplateData = async (templateIds: Array<number>, 
+    limit: number) => {
+    const ae = getAtomicEndpoint();
+
+    const seperator: string = '%2C';
+    const ids: string = templateIds.join(seperator);
+    
+    const res = 
+    await fetch(`${ae}/templates?ids=${ids}&page=1&limit=${limit}&order=desc&sort=created`)
+        .then(resp => resp && resp.json())
+        .then(res => res && res.data)
+        .catch(error => console.log(error));
+
+    return res;
+}
+
+const getAtomicEndpoint = () => {
+    const rand = Math.floor(Math.random() * atomicEndpoints.length);
+    return `https://${atomicEndpoints[rand]}/atomicassets/v1`;
+}
+
+export const validatePropertyName = (propertyName: string): string => {
+
+    return propertyName
+        .replace(/\./g, '%2P')
+        .replace(/\$/g, '%2D')
+        .replace(/#/g, '%2H')
+        .replace(/\[/g, '%2O')
+        .replace(/\]/g, '%2C')
+        .replace(/\//g, '%2S');
 }
