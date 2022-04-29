@@ -108,8 +108,8 @@ export const getShopItemsFromContract = async () => {
 
     for (const memo in menuItemsObj) {
         const shopItem: shopItem = {
-            item: {},
-            limits: {}
+            item: undefined,
+            limits: undefined
         }
 
         const menuItem = menuItemsObj[memo];
@@ -131,6 +131,7 @@ export const createTemplateObj = async () => {
     const templateItems: templateItems = {};
 
     for (const memo in shopItems) {
+        console.log(memo);
         const si: any = shopItems[memo].item
         templateItems[memo] = {
             Memo: si.Memo,
@@ -146,29 +147,29 @@ export const createTemplateObj = async () => {
 const addTemplateData = async (templateItems: templateItems) => {
     const templateItemValues = Object.values(templateItems);
 
-    const ids: Array<number> = templateItemValues.map((si: any) => {
-        if (si && Object.keys(si).length !== 0) {
-            return si.TemplateId;
-        }
-    });
-
-    const completeBatch: Array<number> = [ ...ids ];
-
     const limit = 100;
 
-    while (completeBatch.length !== 0) {
-        const batch: Array<number> = completeBatch.slice(0, limit);
+    while (templateItemValues.length !== 0) {
+        const tivBatch: Array<templateItem> = 
+            templateItemValues.slice(0, limit);
+
+        const batch: Array<number> = tivBatch.map((si: any) => {
+            if (si && Object.keys(si).length !== 0) {
+                return si.TemplateId;
+            }
+        });
 
         const templates: Array<any> = await getTemplateData(batch, limit);
-
+        
         if (templates) {
-            for (const t of templates) {
-                const id = Number(t.template_id);
-                const idIndex = ids.indexOf(id);
-                const idMemo: string = 
-                validatePropertyName(templateItemValues[idIndex].Memo);
-                console.log(idMemo);
-                const templateItem: templateItem = templateItems[idMemo];
+            let templatesObj: any = {};
+
+            templates.forEach(t => {
+                templatesObj[t.template_id] = t;
+            });
+
+            tivBatch.forEach(tiv => {
+                const t: any = templatesObj[tiv.TemplateId];
                 let immData: any = t.immutable_data;
                 const validImmData: any = {}
 
@@ -181,11 +182,14 @@ const addTemplateData = async (templateItems: templateItems) => {
 
                 t.immutable_data = validImmData;
 
-                templateItem.TemplateData = t;
-            }
-            completeBatch.splice(0, limit);
+                templateItems[validatePropertyName(tiv.Memo)]
+                    .TemplateData = t;
+                return tiv;
+            })
+            templateItemValues.splice(0, limit);
         }
     }
+
     return templateItems;
 }
 

@@ -1,5 +1,5 @@
 import { createTemplateObj, getShopItemsFromContract, validatePropertyName } from "./helpers";
-import { collections, schemas, shopData, shopItem, templateItem, templateItems } from "./schemas";
+import { collections, menuItem, schemas, shopData, shopItem, templateItem, templateItems } from "./schemas";
 import * as admin from 'firebase-admin';
 import "dotenv/config";
 
@@ -23,8 +23,8 @@ const filterShopItems = async () => {
     const collectionNames: Array<string> = 
     ShopItemValues.reduce((prev: Array<string>, cur: shopItem) => {
         
-        if (Object.keys(cur.item).length !== 0) {
-            const ci: any = cur.item;   //FIXME types
+        if (cur.item) {
+            const ci: menuItem = cur.item; 
             const cn: string = ci.CollectionName
 
             if (!prev.includes(cn)) {
@@ -50,8 +50,8 @@ const filterShopItems = async () => {
         const collectionItems: Array<shopItem> = 
         ShopItemValues.filter((shopItem: shopItem) => {
 
-            if (Object.keys(shopItem.item).length !== 0) {
-                const si: any = shopItem.item;
+            if (shopItem.item) {
+                const si: menuItem = shopItem.item;
 
                 return si.CollectionName === cn;
             }
@@ -84,8 +84,8 @@ const filterShopItems = async () => {
             const schemaItems: Array<shopItem> = 
             collectionItems.filter(shopItem => {
 
-                if (Object.keys(shopItem.item).length !== 0) {
-                    const si: any = shopItem.item;
+                if (shopItem.item) {
+                    const si: menuItem = shopItem.item;
 
                     return si.SchemaName === sn;
                 }

@@ -1,5 +1,3 @@
-interface emptyObject {}
-
 interface menuItemPrice {
     quantity: string,
     contract: string
@@ -53,8 +51,8 @@ export interface limitItemsObj {
 }
 
 export interface shopItem {
-    item: menuItem | emptyObject,
-    limits: limitItem | emptyObject,
+    item: menuItem | undefined,
+    limits: limitItem | undefined,
 }
 
 export interface shopItems {

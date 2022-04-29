@@ -1,7 +1,8 @@
 import { Reference } from '@firebase/database-types';
 import * as admin from 'firebase-admin';
 import * as serviceKey from '../key.json';
-import { disValidatePropName } from './helpers';
+import { disValidateNames, disValidatePropertyName, disValidateMemoKeys, disvalidateImmData } from './helpers';
+import { shopItem, shopItems, templateItems } from './schemas';
 
 const sk: any = serviceKey;
 
@@ -23,7 +24,10 @@ export const getItems = async (lowerBound: string, limit: number) => {
 
     const res = await query.once('value', snapshot => {
         if (snapshot.exists()) {
-            return snapshot.val();
+            let data: shopItems = snapshot.val();
+            const optItems: shopItems = disValidateMemoKeys(data);
+
+            return optItems;
         } else {
             return { error: 'no data found' }
         }
@@ -39,6 +43,7 @@ export const getItem = async (name: string) => {
 
     const res = await ref.once('value', snapshot => {
         if (snapshot.exists()) {
+
             return snapshot.val();
         } else {
             return { error: 'no data found' }
@@ -47,8 +52,6 @@ export const getItem = async (name: string) => {
         return { error }
     });
 
-
-    console.log(res);
     return res;
 }
 
@@ -57,7 +60,11 @@ export const getColNames = async () => {
 
     const res = await ref.once('value', snapshot => {
         if (snapshot.exists()) {
-            return snapshot.val();
+
+            const data: string[] = snapshot.val();
+            const optData = disValidateNames(data);
+
+            return optData;
         } else {
             return { error: 'no data found' }
         }
@@ -75,7 +82,11 @@ export const getSchNames = async (colName: string) => {
 
     const res = await ref.once('value', snapshot => {
         if (snapshot.exists()) {
-            return snapshot.val();
+
+            const data: string[] = snapshot.val();
+            const optData = disValidateNames(data);
+
+            return optData;
         } else {
             return { error: 'no data found' }
         }
@@ -101,7 +112,10 @@ export const getColItems = async (colName: string, lowerBound: string | boolean,
 
     const res = await query.once('value', snapshot => {
         if (snapshot.exists()) {
-            return snapshot.val();
+            const items: shopItems = snapshot.val();
+            const optItems: shopItems = disValidateMemoKeys(items);
+
+            return optItems;
         } else {
             return { error: 'no data found' }
         }
@@ -128,7 +142,10 @@ export const getSchItems = async (colName: string, schName: string,
 
     const res = await query.once('value', snapshot => {
         if (snapshot.exists()) {
-            return snapshot.val();
+            const items: shopItems = snapshot.val();
+            const optItems: shopItems = disValidateMemoKeys(items);
+
+            return optItems;
         } else {
             return { error: 'no data found' }
         }
@@ -156,7 +173,13 @@ export const getTemplates = async (memo: string | undefined,
         await Promise.all(
             queries.map(query => query.once('value', snapshot => {
                 if (snapshot.exists()) {
-                    res.push(snapshot.val());
+                    const items: templateItems = snapshot.val();
+                    let optItems: templateItems = 
+                        disValidateMemoKeys(items);
+
+                    optItems = disvalidateImmData(optItems);
+
+                    res.push(optItems);
                 } else {
                     res.push({ error: 'no data found' })
                 }

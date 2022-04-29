@@ -67,10 +67,17 @@ app.post('/get_schema_drops', async (req, resp) => {
 
 app.post('/get_templates', async (req, resp) => {
     const body = req.body;
-    const memo: string = body.memo;
-    const ids: string[] = body.ids;
+    const memo: string | undefined = body.memo;
+    const ids: string[] | undefined = body.ids;
 
-    const res = await getTemplates(memo, ids);
+    let res = {}
+
+    if (!memo && !ids) {
+        res = { error: 'no query found' }
+    } else {
+        res = await getTemplates(memo, ids);
+    }
+
     resp.send(res);
 })
 
