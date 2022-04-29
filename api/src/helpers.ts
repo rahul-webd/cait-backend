@@ -1,4 +1,15 @@
-import { shopItems, shopItem, templateItems } from "./schemas";
+import { templateItem } from "./schemas";
+
+export const validatePropertyName = (propertyName: string): string => {
+
+    return propertyName
+        .replace(/\./g, '%2P')
+        .replace(/\$/g, '%2D')
+        .replace(/#/g, '%2H')
+        .replace(/\[/g, '%2O')
+        .replace(/\]/g, '%2C')
+        .replace(/\//g, '%2S');
+}
 
 export const disValidatePropertyName = 
     (propertyName: string): string => {
@@ -24,27 +35,31 @@ export const disValidateMemoKeys = (items: any) => {
     return optItems;
 }
 
-export const disValidateNames = (items: string[]) => {
-    const optItems = items.map(item => disValidatePropertyName(item));
+export const validateNames = (items: string[]) => {
+    const optItems = items.map(item => validatePropertyName(item));
 
     return optItems;
 }
 
-export const disvalidateImmData = (items: templateItems) => {
+export const disValidateNames = (items: string[]) => {
+    const optItems = items.map(item => disValidatePropertyName(item));
+    console.log(optItems);
+
+    return optItems;
+}
+
+export const disvalidateImmData = (item: templateItem) => {
+    const td: any = item.TemplateData;
     
-    for (const memo in items) {
-        const td: any = items[memo].TemplateData;
+    const immData: any = td.immutable_data;
+    const optImmData: any = {}
 
-        const immData: any = td.immutable_data;
-        const optImmData: any = {}
-
-        for (const key in immData) {
-            const k = disValidatePropertyName(key);
-            optImmData[k] = immData[key]
-        }
-
-        td.immutable_data = optImmData;
+    for (const key in immData) {
+        const k = disValidatePropertyName(key);
+        optImmData[k] = immData[key]
     }
 
-    return items;
+    td.immutable_data = optImmData;
+
+    return item;
 }

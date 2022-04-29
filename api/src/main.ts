@@ -1,8 +1,9 @@
 import { Reference } from '@firebase/database-types';
 import * as admin from 'firebase-admin';
 import * as serviceKey from '../key.json';
-import { disValidateNames, disValidatePropertyName, disValidateMemoKeys, disvalidateImmData } from './helpers';
-import { shopItem, shopItems, templateItems } from './schemas';
+import { disValidateNames, disValidatePropertyName, disValidateMemoKeys,
+    disvalidateImmData, validateNames, validatePropertyName } from './helpers';
+import { shopItems, templateItem } from './schemas';
 
 const sk: any = serviceKey;
 
@@ -12,160 +13,172 @@ admin.initializeApp({
 })
 const db = admin.database();
 
-export const getItems = async (lowerBound: string, limit: number) => {
+export const getItems = async (lowerBound: string | undefined,
+    limit: number) => {
+
     const ref = db.ref('shopData/items');
     let query;
 
     if (lowerBound) {
+        lowerBound = validatePropertyName(lowerBound);
+
         query = ref.orderByKey().startAfter(lowerBound).limitToFirst(limit);
     } else {
         query = ref.limitToFirst(limit);
     }
 
-    const res = await query.once('value', snapshot => {
-        if (snapshot.exists()) {
-            let data: shopItems = snapshot.val();
-            const optItems: shopItems = disValidateMemoKeys(data);
-
-            return optItems;
-        } else {
-            return { error: 'no data found' }
-        }
-    }, error => {
-        return { error }
+    const snapshot = await query.once('value').catch(err => {
+        console.log(err);
     });
 
-    return res;
+    if (snapshot && snapshot.exists()) {
+        let data: shopItems = snapshot.val();
+        const optItems: shopItems = disValidateMemoKeys(data);
+
+        return optItems;
+    } else {
+        return { error: 'no data found' }
+    }
 }
 
 export const getItem = async (name: string) => {
+
+    name = validatePropertyName(name);
+
     const ref = db.ref(`shopData/items/${name}`);
 
-    const res = await ref.once('value', snapshot => {
-        if (snapshot.exists()) {
-
-            return snapshot.val();
-        } else {
-            return { error: 'no data found' }
-        }
-    }, error => {
-        return { error }
+    const snapshot = await ref.once('value').catch(err => {
+        console.log(err);
     });
 
-    return res;
+    if (snapshot && snapshot.exists()) {
+
+        return snapshot.val();
+    } else {
+        return { error: 'no data found' }
+    }
 }
 
 export const getColNames = async () => {
     const ref = db.ref(`shopData/collections/colNames`);
 
-    const res = await ref.once('value', snapshot => {
-        if (snapshot.exists()) {
-
-            const data: string[] = snapshot.val();
-            const optData = disValidateNames(data);
-
-            return optData;
-        } else {
-            return { error: 'no data found' }
-        }
-    }, error => {
-        return { error }
+    const snapshot = await ref.once('value').catch(err => {
+        console.log(err);
     });
 
-    console.log(res);
-    return res;
+    if (snapshot && snapshot.exists()) {
+
+        const data: string[] = snapshot.val();
+        const optData = disValidateNames(data);
+
+        return optData;
+    } else {
+        return { error: 'no data found' }
+    }
 }
 
 export const getSchNames = async (colName: string) => {
+
+    colName = validatePropertyName(colName);
+
     const ref = 
-    db.ref(`shopData/collections/colItems/${colName}/schemas/schNames`);
+        db.ref(`shopData/collections/colItems/${colName}/schemas/schNames`);
 
-    const res = await ref.once('value', snapshot => {
-        if (snapshot.exists()) {
-
-            const data: string[] = snapshot.val();
-            const optData = disValidateNames(data);
-
-            return optData;
-        } else {
-            return { error: 'no data found' }
-        }
-    }, error => {
-        return { error }
+    const snapshot = await ref.once('value').catch(err => {
+        console.log(err);
     });
 
-    console.log(res);
-    return res;
+    if (snapshot && snapshot.exists()) {
+
+        const data: string[] = snapshot.val();
+        const optData = disValidateNames(data);
+
+        return optData;
+    } else {
+        return { error: 'no data found' }
+    }
 }
 
-export const getColItems = async (colName: string, lowerBound: string | boolean,
-    limit: number) => {
+export const getColItems = async (colName: string, 
+    lowerBound: string | undefined, limit: number) => {
+
+    colName = validatePropertyName(colName);
+
     const ref = db.ref(`shopData/collections/colItems/${colName}/items`);
     let query;
 
     if (lowerBound) {
+        lowerBound = validatePropertyName(lowerBound);
+
         query = ref.orderByKey().startAfter(lowerBound)
         .limitToFirst(limit);
     } else {
         query = ref.limitToFirst(limit);
     }
 
-    const res = await query.once('value', snapshot => {
-        if (snapshot.exists()) {
-            const items: shopItems = snapshot.val();
-            const optItems: shopItems = disValidateMemoKeys(items);
-
-            return optItems;
-        } else {
-            return { error: 'no data found' }
-        }
-    }, error => {
-        return { error }
+    const snapshot = await query.once('value').catch(err => {
+        console.log(err);
     });
 
-    console.log(res);
-    return res;
+    if (snapshot && snapshot.exists()) {
+        const items: shopItems = snapshot.val();
+        const optItems: shopItems = disValidateMemoKeys(items);
+        
+        return optItems;
+    } else {
+        return { error: 'no data found' }
+    }
 }
 
 export const getSchItems = async (colName: string, schName: string,
-    lowerBound: string | boolean, limit: number) => {
+    lowerBound: string | undefined, limit: number) => {
+
+    colName = validatePropertyName(colName);
+    schName = validatePropertyName(schName);
+    
     const ref = 
     db.ref(`shopData/collections/colItems/${colName}/schemas/schItems/${schName}`);
     let query;
-
+    
     if (lowerBound) {
+        lowerBound = validatePropertyName(lowerBound);
+
         query = ref.orderByKey().startAfter(lowerBound)
         .limitToFirst(limit);
     } else {
         query = ref.limitToFirst(limit);
     }
 
-    const res = await query.once('value', snapshot => {
-        if (snapshot.exists()) {
-            const items: shopItems = snapshot.val();
-            const optItems: shopItems = disValidateMemoKeys(items);
-
-            return optItems;
-        } else {
-            return { error: 'no data found' }
-        }
-    }, error => {
-        return { error }
+    const snapshot = await query.once('value').catch(err => {
+        console.log(err);
     });
 
-    console.log(res);
-    return res;
+    if (snapshot && snapshot.exists()) {
+        const items: shopItems = snapshot.val();
+        const optItems: shopItems = disValidateMemoKeys(items);
+
+        return optItems;
+    } else {
+        return { error: 'no data found' }
+    }
 }
 
 export const getTemplates = async (memo: string | undefined, 
     ids: string[] | undefined) => {
+
     let ref;
     let queries: Reference[] = [];
     let res: any[] = []
+
+    
     if (memo) {
+        memo = validatePropertyName(memo);
         ref = db.ref(`templateData/${memo}`);
+
         queries.push(ref);
     } else if (ids) {
+        ids = validateNames(ids);
+
         queries = ids.map(id => db.ref(`templateData/${id}`));
     }
 
@@ -173,13 +186,10 @@ export const getTemplates = async (memo: string | undefined,
         await Promise.all(
             queries.map(query => query.once('value', snapshot => {
                 if (snapshot.exists()) {
-                    const items: templateItems = snapshot.val();
-                    let optItems: templateItems = 
-                        disValidateMemoKeys(items);
+                    const item: templateItem = snapshot.val();
+                    const optItem = disvalidateImmData(item);
 
-                    optItems = disvalidateImmData(optItems);
-
-                    res.push(optItems);
+                    res.push(optItem);
                 } else {
                     res.push({ error: 'no data found' })
                 }

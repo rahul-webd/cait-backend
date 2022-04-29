@@ -47,7 +47,7 @@ app.post('/get_schema_names', async (req, resp) => {
 app.post('/get_collection_drops', async (req, resp) => {
     const body = req.body;
     const colName: string = body.colName;
-    const lowerBound: string | boolean = body.lowerBound;
+    const lowerBound: string | undefined = body.lowerBound;
     const limit: number = body.limit;
 
     const res = await getColItems(colName, lowerBound, limit);
@@ -58,7 +58,7 @@ app.post('/get_schema_drops', async (req, resp) => {
     const body = req.body;
     const colName: string = body.colName;
     const schName: string = body.schName;
-    const lowerBound: string | boolean = body.lowerBound;
+    const lowerBound: string | undefined = body.lowerBound;
     const limit: number = body.limit;
 
     const res = await getSchItems(colName, schName, lowerBound, limit);
