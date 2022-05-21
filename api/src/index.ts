@@ -2,7 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import { getItems, getItem, getColNames, getSchNames, getColItems,
     getSchItems, 
-    getTemplates} from './main';
+    getTemplates,
+    resizeMedia} from './main';
+import { Data } from './schemas';
 
 const port = process.env.PORT || 8080;
 const app = express();
@@ -79,7 +81,19 @@ app.post('/get_templates', async (req, resp) => {
     }
 
     resp.send(res);
+});
+
+app.post('/resize', async (req, resp) => {
+    const body = req.body;
+    const hash: string | undefined = body.hash;
+
+    // const hash: string 
+    //     = `QmVjrY5Mok8rnMCV1ZwhcWz1CzveZKuNhjRse18sGZqyKr`;
+
+    const res: Data = await resizeMedia(hash);
+    resp.send(res);
 })
+
 
 app.listen(port, () => {
     console.log(`api listening at port ${port}`);

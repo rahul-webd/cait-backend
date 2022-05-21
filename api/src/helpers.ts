@@ -1,4 +1,5 @@
-import { templateItem } from "./schemas";
+import fetch from "node-fetch";
+import { Data, templateItem } from "./schemas";
 
 export const validatePropertyName = (propertyName: string): string => {
 
@@ -62,4 +63,40 @@ export const disvalidateImmData = (item: templateItem) => {
     td.immutable_data = optImmData;
 
     return item;
+}
+
+export const fetcher = async (url: string): Promise<Data> => {
+
+    let res: Data = {
+        data: '',
+        error: ''
+    }
+
+    const r = await fetch(url)
+        .then(resp => resp.json())
+        .catch(err => {
+            res.error = err;
+        })
+
+    res.data = r;
+
+    return res;
+}
+
+export const BufferFetcher = async (url: string): Promise<Data> => {
+
+    let res: Data = {
+        data: '',
+        error: ''
+    }
+
+    const r = await fetch(url)
+        .then(resp => resp.arrayBuffer())
+        .catch(err => {
+            res.error = err;
+        })
+
+    res.data = r;
+
+    return res;
 }

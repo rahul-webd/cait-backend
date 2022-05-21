@@ -1,15 +1,20 @@
 import { Reference } from '@firebase/database-types';
 import * as admin from 'firebase-admin';
 import * as serviceKey from '../key.json';
-import { disValidateNames, disValidatePropertyName, disValidateMemoKeys,
-    disvalidateImmData, validateNames, validatePropertyName } from './helpers';
-import { shopItems, templateItem } from './schemas';
+import { FILESAVEERROR, INVALIDHASH } from './exceptions';
+import { disValidateNames, disValidateMemoKeys,
+    disvalidateImmData, validateNames, 
+    validatePropertyName } from './helpers';
+import { resize } from './ipfsResizer';
+import { Data, ResizedMedia, shopItems, templateItem } from './schemas';
+import { Storage } from '@google-cloud/storage';
 
 const sk: any = serviceKey;
 
 admin.initializeApp({
     credential: admin.credential.cert(sk),
-    databaseURL: 'https://cait-49fc0-default-rtdb.firebaseio.com'
+    databaseURL: 'https://cait-49fc0-default-rtdb.firebaseio.com',
+    storageBucket: 'cait-49fc0.appspot.com'
 })
 const db = admin.database();
 
@@ -199,5 +204,74 @@ export const getTemplates = async (memo: string | undefined,
         );
     }
 
+    return res;
+}
+
+const uploadResizedMedia = async (resizedMedia: ResizedMedia, 
+    name: string): Promise<Data> => {
+
+    const res: Data = {
+        data: '',
+        error: ''
+    }
+
+    const storage = new Storage();
+
+    if (resizedMedia.buffer) {
+
+        await storage.bucket('cait-49fc0.appspot.com')
+            .file(`resized/${name}`)
+            .save(resizedMedia.buffer, {
+                metadata: {
+                    contentType: resizedMedia.mime
+                }
+            })
+            .then(() => {
+                res.data = 'file saved succesfully';
+            }).catch((err: any) => {
+                res.error = FILESAVEERROR
+            })
+    } else {
+
+        res.error = 'no media to upload';
+    }
+
+    return res;
+}
+
+export const resizeMedia 
+    = async (hash: string | undefined): Promise<Data> => {
+
+    const res: Data = {
+        data: '',
+        error: ''
+    }
+
+    if (hash) {
+
+        const resizedData: Data = await resize(hash);
+    
+        if (!resizedData.error && resizedData.data) {
+    
+            const resizedMedia: ResizedMedia = resizedData.data;
+            const uploadRes: Data 
+                = await uploadResizedMedia(resizedMedia, hash);
+    
+            if (!uploadRes.error && uploadRes.data) {
+    
+                res.data = 'file resized and saved successfully';
+            } else {
+    
+                res.error = uploadRes.error
+            }
+        } else {
+    
+            res.error = resizedData.error;
+        }
+    } else {
+
+        res.error = INVALIDHASH
+    }
+    
     return res;
 }
